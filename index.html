@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latest Earthquakes  | Breq Catalog</title>
+    <title>Latest Earthquakes | Breq Catalog</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
         h2 { color: #0077b6; font-weight: normal; margin-bottom: 5px; }
@@ -11,7 +11,8 @@
         table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
         th { border-bottom: 2px solid #ddd; padding: 8px; font-weight: bold; color: #555; }
         td { padding: 8px; border-bottom: 1px solid #ddd; color: #0077b6; }
-        /* Cores baseadas na USP */
+        
+        /* Sistema Automático de Cores */
         .row-normal { background-color: #f9f9f9; }
         .row-blue { background-color: #e0f2fe; }
         .row-orange { background-color: #fbd38d; font-weight: bold; color: #b45309; }
@@ -38,38 +39,46 @@
             </tr>
         </thead>
         <tbody id="eq-table-body">
-            <!-- Sismo Forte (Laranja) -->
-            <tr class="row-orange">
-                <td>2026-07-03 08:22:49 UTC</td>
-                <td>154.50</td>
-                <td>48.24</td>
-                <td>36.0</td>
-                <td>M</td>
-                <td>5.9 mb</td>
-                <td class="region-text">Kuril Islands</td>
-            </tr>
-            <!-- Sismo Médio (Azul) -->
-            <tr class="row-blue">
-                <td>2026-07-02 23:30:48 UTC</td>
-                <td>-48.77</td>
-                <td>-19.99</td>
-                <td>0.0</td>
-                <td>M</td>
-                <td>2.4 mR</td>
-                <td class="region-text">Pirajuba/MG</td>
-            </tr>
-            <!-- Sismo Fraco (Branco/Cinza) -->
-            <tr class="row-normal">
-                <td>2026-07-02 01:39:24 UTC</td>
-                <td>-72.78</td>
-                <td>-14.20</td>
-                <td>48.0</td>
-                <td>M</td>
-                <td>4.7 mb</td>
-                <td class="region-text">Central Peru</td>
-            </tr>
+            <!-- O JavaScript vai injetar as linhas dos sismos aqui dentro automaticamente -->
         </tbody>
     </table>
 
+    <script>
+        // Motor que busca o arquivo catalogo.json e desenha a tabela
+        fetch('catalogo.json')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('eq-table-body');
+                tbody.innerHTML = ''; 
+
+                data.forEach(eq => {
+                    // Extrai apenas o número da magnitude para decidir a cor
+                    let magNum = parseFloat(eq.mag_val.split(" ")[0]);
+                    let rowClass = "row-normal";
+                    
+                    if (magNum >= 5.0) {
+                        rowClass = "row-orange";
+                    } else if (magNum >= 3.0) {
+                        rowClass = "row-blue";
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = rowClass;
+                    tr.innerHTML = `
+                        <td>${eq.time}</td>
+                        <td>${eq.lon}</td>
+                        <td>${eq.lat}</td>
+                        <td>${eq.dep}</td>
+                        <td>${eq.mag_type}</td>
+                        <td>${eq.mag_val}</td>
+                        <td class="region-text">${eq.region}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                document.getElementById('eq-table-body').innerHTML = '<tr><td colspan="7">Aguardando dados sismológicos...</td></tr>';
+            });
+    </script>
 </body>
 </html>
